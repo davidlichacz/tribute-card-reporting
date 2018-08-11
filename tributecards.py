@@ -5,6 +5,7 @@ import os
 import sys
 import openpyxl
 import subprocess, os
+import functions
 from statholidays import holidays
 
 
@@ -13,10 +14,15 @@ from statholidays import holidays
 month = input('Enter month: ')
 year = input('Enter year: ')
 
-# Build path where files will be found.
+# Build list of files for the chosen month.
 path = '/Users/davidlichacz/Tribute Spreadsheets/'
 filepath = f'{path}{month} {year}/*.XLS'
+filelist = glob.glob(filepath)
 
+# Check if folder is empty.
+if len(filelist) == 0:
+    print(f'There are currently no cards processed for {month} {year}.')
+    sys.exit()
 
 # Initialize a calendar that will calculate the number of business days between two dates.
 cal = bizdays.Calendar(holidays, ['Sunday', 'Saturday'])
@@ -24,9 +30,8 @@ cal = bizdays.Calendar(holidays, ['Sunday', 'Saturday'])
 # Create empty dataframe that will contain all card data.
 cards = pd.DataFrame()
 
-
 # Read each Excel file into the cards dataframe.
-for filename in glob.glob(filepath):
+for filename in filelist:
     data = pd.read_excel(filename)
     cards = pd.concat([cards, data], ignore_index=True)
 
@@ -40,24 +45,15 @@ rows = cards.shape[0]
 pulled = []
 sent = []
 
-# Note that a Gift Date Added that is greater than Date Pulled/Sent raises a ValueError.
 for k in (range(rows)):
-    try:
-        pulled.append(cal.bizdays(cards['Gift Date Added'][k], cards['Date Pulled'][k]))
-    except ValueError:
-        pulled.append(-cal.bizdays(cards['Date Pulled'][k], cards['Gift Date Added'][k]))
-    try:
-        sent.append(cal.bizdays(cards['Gift Date Added'][k], cards['Date Sent'][k]))
-    except ValueError:
-        sent.append(-cal.bizdays(cards['Date Sent'][k], cards['Gift Date Added'][k]))
-    
+    pulled.append(functions.bizdays_neg(cal, cards['Gift Date Added'][k], cards['Date Pulled'][k]))
+    sent.append(functions.bizdays_neg(cal, cards['Gift Date Added'][k], cards['Date Sent'][k]))
+
 cards.insert(loc=9, column='Business Days Until Pulled', value=pulled)
 cards.insert(loc=10, column='Business Days Until Sent', value=sent)
 
-
 # Sort dataframe for logical readability.
 cards = cards.sort_values(by=['Gift Date Added', 'Tribute Card Type'])
-
 
 # Prepare, save and open final file.
 reportfile = f'{path}{month} {year}/{month} {year} Tribute Cards.xlsx'
@@ -66,7 +62,6 @@ writer = pd.ExcelWriter(reportfile)
 
 cards.to_excel(writer, index=False)
 writer.save()
-
 
 if sys.platform.startswith('darwin'):
     subprocess.call(('open', reportfile))
