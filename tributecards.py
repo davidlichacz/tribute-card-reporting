@@ -4,9 +4,12 @@ import bizdays
 import os
 import sys
 import openpyxl
+from numpy import mean
+from openpyxl.utils.dataframe import dataframe_to_rows
 import subprocess, os
 import functions
 from statholidays import holidays
+from openpyxl.styles import Alignment
 
 
 # Get month and year of report from user.  Ultimately this will be a selection from a drop-down list
@@ -40,6 +43,9 @@ cards['Gift Date Added'] = cards['Gift Date Added'].astype(str)
 cards['Date Pulled'] = cards['Date Pulled'].astype(str)
 cards['Date Sent'] = cards['Date Sent'].astype(str)
 
+# Convert Constituent ID column to string to improve readability of final spreadsheet.
+cards['Constituent ID'] = cards['Constituent ID'].astype(str)
+
 # Calculate differences in business days and insert them into dataframe.
 rows = cards.shape[0]
 pulled = []
@@ -55,13 +61,35 @@ cards.insert(loc=10, column='Business Days Until Sent', value=sent)
 # Sort dataframe for logical readability.
 cards = cards.sort_values(by=['Gift Date Added', 'Tribute Card Type'])
 
+# Use openpyxl package for inputing summary statistics.
+wb_cards = openpyxl.Workbook()
+ws = wb_cards.active
+
+for row in dataframe_to_rows(cards, index=False, header=True):
+    ws.append(row)
+
+
+# Enter summary statistics and labels.
+last_row = ws.max_row
+
+ws['I'+str(last_row+2)] = 'Average:'
+ws['I'+str(last_row+2)].alignment = Alignment(horizontal='right')
+
+ws['J'+str(last_row+2)] = round(mean(pulled), 2)
+ws['K'+str(last_row+2)] = round(mean(sent), 2)
+
+ws['I'+str(last_row+3)] = 'Maximum:'
+ws['I'+str(last_row+3)].alignment = Alignment(horizontal='right')
+
+ws['J'+str(last_row+3)] = max(pulled)
+ws['K'+str(last_row+3)] = max(sent)
+
+functions.adjust_width(ws)
+
 # Prepare, save and open final file.
 reportfile = f'{path}{month} {year}/{month} {year} Tribute Cards.xlsx'
 
-writer = pd.ExcelWriter(reportfile)
-
-cards.to_excel(writer, index=False)
-writer.save()
+wb_cards.save(reportfile)
 
 if sys.platform.startswith('darwin'):
     subprocess.call(('open', reportfile))
