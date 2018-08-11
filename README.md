@@ -5,14 +5,15 @@ This project will use daily generated spreadsheets and use them to create monthl
 **Current Features**
 
  - Creates spreadsheet that summarizes all cards sent for a chosen month.
+ - Calculates monthly statistics.
+ - Error checking
+   - Checks if no files are found in the requested folder
 
 **Future improvements:**
- - Error handling
-   - No files found
+ - Error checking
    - Incompatible files
    - Missing dates
    - Out-of-range dates	
-  - Calculate summary statistics.
  - Update spreadsheet that summarizes annual data.
  - Create visualization.
  - Create GUI for user-friendliness and standardizing data entry.
