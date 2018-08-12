@@ -5,10 +5,11 @@ import os
 import sys
 import openpyxl
 from numpy import mean
+import numpy as np
 from openpyxl.utils.dataframe import dataframe_to_rows
 import subprocess, os
 import functions
-from statholidays import holidays
+import constants as c
 from openpyxl.styles import Alignment
 
 
@@ -22,13 +23,20 @@ path = '/Users/davidlichacz/Tribute Spreadsheets/'
 filepath = f'{path}{month} {year}/*.XLS'
 filelist = glob.glob(filepath)
 
-# Check if folder is empty.
+# If an error log from a previous running of the report exisits, delete it.
+errorlog = f'{path}/Error Logs/{month} {year} error log.txt'
+try:
+    os.remove(errorlog)
+except:
+    pass
+
+# Check if folder is empty. If it is, there is no reason to proceed.
 if len(filelist) == 0:
     print(f'There are currently no cards processed for {month} {year}.')
     sys.exit()
 
 # Initialize a calendar that will calculate the number of business days between two dates.
-cal = bizdays.Calendar(holidays, ['Sunday', 'Saturday'])
+cal = bizdays.Calendar(c.holidays, ['Sunday', 'Saturday'])
 
 # Create empty dataframe that will contain all card data.
 cards = pd.DataFrame()
@@ -36,7 +44,30 @@ cards = pd.DataFrame()
 # Read each Excel file into the cards dataframe.
 for filename in filelist:
     data = pd.read_excel(filename)
-    cards = pd.concat([cards, data], ignore_index=True)
+    error = False
+    # Check to see if spreadsheet has the correct structure for reporting.
+    # If it does not, add an entry to the error log for further investigation.
+    if (len(data.columns.values) != len(c.sheet_columns)) or not np.array_equal(data.columns.values[0:7], np.array(c.sheet_columns[0:7])):
+        error = True
+        # If error log not already open, open it.
+        try:
+            if log.mode == 'a+':
+                pass
+        except NameError:
+            log = open(errorlog, 'a+')
+        log.write(f'{filename} is incompatible with tribute spreadsheets\n')
+    if error == False:
+        # Removes potential inconsistencies in manually entered column names.
+        data.columns.values[7:] = c.sheet_columns[7:]
+        cards = pd.concat([cards, data], ignore_index=True)
+# If there were any errors found, end process so user can investigate and correct issues.
+try:
+    if log.mode == 'a+':
+        print('There was a problem generating the report.  Please check error log.')
+        log.close
+        sys.exit()
+except NameError:
+    pass
 
 # Convert date columns to strings. Necessary to calculate differences in business days.  
 cards['Gift Date Added'] = cards['Gift Date Added'].astype(str)
