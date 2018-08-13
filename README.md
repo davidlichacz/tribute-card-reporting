@@ -7,12 +7,12 @@ This project will use daily generated spreadsheets and use them to create monthl
  - Creates spreadsheet that summarizes all cards sent for a chosen month.
  - Calculates monthly statistics.
  - Error checking
-   - Checks if no files are found in the requested folder
+   - Checks if no files are found in the requested folder.
+   - Ensures all files have the same structure.
+   - Checks for missing dates.
 
 **Future improvements:**
  - Error checking
-   - Incompatible files
-   - Missing dates
    - Out-of-range dates	
  - Update spreadsheet that summarizes annual data.
  - Create visualization.

@@ -13,3 +13,10 @@ def adjust_width(sheet):
 	for column_cells in sheet.columns:
 		length = max(len(as_text(cell.value)) for cell in column_cells)
 		sheet.column_dimensions[column_cells[0].column].width = length
+
+def open_error_log(errorlog):
+	try:
+		if log.mode == 'a+':
+			return None
+	except NameError:
+		return open(errorlog, 'a+')

@@ -12,7 +12,6 @@ import functions
 import constants as c
 from openpyxl.styles import Alignment
 
-
 # Get month and year of report from user.  Ultimately this will be a selection from a drop-down list
 # so error handling is omitted for now.
 month = input('Enter month: ')
@@ -44,21 +43,28 @@ cards = pd.DataFrame()
 # Read each Excel file into the cards dataframe.
 for filename in filelist:
     data = pd.read_excel(filename)
-    error = False
+    error = False 
     # Check to see if spreadsheet has the correct structure for reporting.
     # If it does not, add an entry to the error log for further investigation.
     if (len(data.columns.values) != len(c.sheet_columns)) or not np.array_equal(data.columns.values[0:7], np.array(c.sheet_columns[0:7])):
         error = True
-        # If error log not already open, open it.
-        try:
-            if log.mode == 'a+':
-                pass
-        except NameError:
-            log = open(errorlog, 'a+')
-        log.write(f'{filename} is incompatible with tribute spreadsheets\n')
-    if error == False:
+        log = functions.open_error_log(errorlog)
+        log.write(f'{filename} is incompatible with tribute spreadsheets.\n')
+    else:
         # Removes potential inconsistencies in manually entered column names.
         data.columns.values[7:] = c.sheet_columns[7:]
+        # Isolate dates columns as they are the only ones important for calculations.
+        dates = data[['Gift Date Added', 'Date Pulled', 'Date Sent']]
+        # See if any of the dates are missing.
+        nans = pd.isnull(dates).any(1)
+        nans_rows = nans.index[nans == True]
+        if len(nans_rows) != 0:
+            error = True
+            log = functions.open_error_log(errorlog)
+            for row in nans_rows:
+                log.write(f'Row {row+2} in {filename} is missing one or more dates.\n')
+    if error == False:
+        # Removes potential inconsistencies in manually entered column names.       
         cards = pd.concat([cards, data], ignore_index=True)
 # If there were any errors found, end process so user can investigate and correct issues.
 try:
