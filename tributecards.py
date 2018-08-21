@@ -22,7 +22,7 @@ path = '/Users/davidlichacz/Tribute Spreadsheets/'
 filepath = f'{path}{month} {year}/*.XLS'
 filelist = glob.glob(filepath)
 
-# If an error log from a previous running of the report exisits, delete it.
+# If an error log from a previous running of the report exists, delete it.
 errorlog = f'{path}/Error Logs/{month} {year} error log.txt'
 try:
     os.remove(errorlog)
@@ -63,8 +63,17 @@ for filename in filelist:
             log = functions.open_error_log(errorlog)
             for row in nans_rows:
                 log.write(f'Row {row+2} in {filename} is missing one or more dates.\n')
+        # Check if any out-of-range dates are present.
+        pulled_vs_sent = data['Date Pulled'] > data['Date Sent']
+        if pulled_vs_sent.any():
+            error = True
+            log = functions.open_error_log(errorlog)
+            indexes = pulled_vs_sent.index[pulled_vs_sent].tolist()
+            for index in indexes:
+                log.write(f'Row {index+2} in {filename} has a Date Sent earlier than the Date Pulled\n')
+
     if error == False:
-        # Removes potential inconsistencies in manually entered column names.       
+        # If no errors were found, add contents of spreadsheet to the dataframe.       
         cards = pd.concat([cards, data], ignore_index=True)
 # If there were any errors found, end process so user can investigate and correct issues.
 try:
@@ -73,6 +82,7 @@ try:
         log.close
         sys.exit()
 except NameError:
+    # Error log was never opened, so there were no errors found.  Proceed with report generation.
     pass
 
 # Convert date columns to strings. Necessary to calculate differences in business days.  
