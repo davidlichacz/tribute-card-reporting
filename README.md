@@ -10,12 +10,13 @@ This project will use daily generated spreadsheets and use them to create monthl
    - Checks if no files are found in the requested folder.
    - Ensures all files have the same structure.
    - Checks for missing dates.
+   - Out-of-range dates.
+ - Sample visualization.  Currently uses mock data to provide an idea of the final product.
+
 
 **Future improvements:**
- - Error checking
-   - Out-of-range dates	
- - Update spreadsheet that summarizes annual data.
- - Create visualization.
+ - Create/Update spreadsheet that summarizes annual data.
+ - Code for visualization.
  - Create GUI for user-friendliness and standardizing data entry.
  - Create database to store monthly data.
  - Web app to display data for easy access during donor calls.
