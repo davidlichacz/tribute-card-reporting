@@ -11,12 +11,12 @@ This project will use daily generated spreadsheets and use them to create monthl
    - Ensures all files have the same structure.
    - Checks for missing dates.
    - Out-of-range dates.
- - Sample visualization.  Currently uses mock data to provide an idea of the final product.
+ - Creates/Updates spreadsheet that summarizes annual data.
+ - Produces visualization for annual data.
+ - Sample visualization.  Uses mock data for illustrative purposes.
 
 
 **Future improvements:**
- - Create/Update spreadsheet that summarizes annual data.
- - Code for visualization.
  - Create GUI for user-friendliness and standardizing data entry.
  - Create database to store monthly data.
  - Web app to display data for easy access during donor calls.
