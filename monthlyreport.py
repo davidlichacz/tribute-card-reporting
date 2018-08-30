@@ -14,18 +14,22 @@ def summary_stats(dataframe, pulled, sent, month, year, path):
 
     # Enter summary statistics and labels.
     last_row = ws.max_row
+    mean_pulled = round(np.mean(pulled), 2)
+    mean_sent = round(np.mean(sent), 2)
+    max_pulled = max(pulled)
+    max_sent = max(sent)
 
     ws['I'+str(last_row+2)] = 'Average:'
     ws['I'+str(last_row+2)].alignment = openpyxl.styles.Alignment(horizontal='right')
 
-    ws['J'+str(last_row+2)] = round(np.mean(pulled), 2)
-    ws['K'+str(last_row+2)] = round(np.mean(sent), 2)
+    ws['J'+str(last_row+2)] = mean_pulled
+    ws['K'+str(last_row+2)] = mean_sent
 
     ws['I'+str(last_row+3)] = 'Maximum:'
     ws['I'+str(last_row+3)].alignment = openpyxl.styles.Alignment(horizontal='right')
 
-    ws['J'+str(last_row+3)] = max(pulled)
-    ws['K'+str(last_row+3)] = max(sent)
+    ws['J'+str(last_row+3)] = max_pulled
+    ws['K'+str(last_row+3)] = max_sent
 
     adjust_width(ws)
 
@@ -34,7 +38,7 @@ def summary_stats(dataframe, pulled, sent, month, year, path):
 
     wb_cards.save(reportfile)
 
-    return reportfile
+    return (reportfile, [last_row-1, mean_pulled, max_pulled, mean_sent, max_sent])
 
 def open_file(file):
     if sys.platform.startswith('darwin'):
